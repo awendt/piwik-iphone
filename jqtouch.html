@@ -45,7 +45,8 @@
           if ($("#install").val() === "") { return; }
 
           $.getJSON($("#install").val() +
-"/?module=API&method=SitesManager.getSitesWithViewAccess&format=json&token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
+              "/?module=API&method=SitesManager.getSitesWithViewAccess&format=json \
+              &token_auth="+$("#token").val()+ "&jsoncallback=?", function(json) {
             $.each(json, function(key, site) {
               $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
             });
@@ -67,7 +68,10 @@
         });
 
         $("#graph_screen").bind('pageAnimationEnd', function() {
-$.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSite="+$("#site").val()+"&period=day&date=last10&format=json&token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
+          $.getJSON($("#install").val()+
+              "/?module=API&method=VisitsSummary.getVisits \
+              &idSite="+$("#site").val() + "&period=day&date=last10&format=json \
+              &token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
             $.each(json, function(key, value) {
               $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>")
             });
