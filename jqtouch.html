@@ -12,8 +12,15 @@
         height:50px;
       }
       #visits {
+        width:240px;
+      }
+      .visualize-labels-x {
+        display:none;
+      }
+      .container {
+        width:320px;
         margin:20px auto;
-        width:480px;
+        padding-left:50px;
       }
     </style>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" />
@@ -57,7 +64,10 @@ $.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSit
             });
             // $("#visits").show();
             $("#graph_screen .loading").hide();
-            $("#visits").visualize({type: 'area', parseDirection: 'y', appendKey: false, appendTitle: false});
+            $("#visits").visualize({
+              type: 'bar', barGroupMargin: 2, parseDirection: 'y', appendKey: false, appendTitle: false
+            });
+            $("#visits").addClass("accessHide");
             // var permalink = document.location;
             // permalink += '?token='+$("#token").val();
             // permalink += '&site='+$("#site").val();
@@ -98,6 +108,7 @@ $.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSit
       <ul class="edit rounded">
         <div class="loading">
         </div>
+        <div class="container">
         <table id="visits" style="display:none;">
           <caption>Besucher der letzten 10 Tage</captions>
           <thead>
@@ -108,6 +119,7 @@ $.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSit
           </thead>
           <tbody></tbody>
         </table>
+        </div>
       </ul>
     </div>
     <div id="home" class="current">
