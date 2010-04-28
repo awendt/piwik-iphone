@@ -46,8 +46,6 @@
 
           $.getJSON($("#install").val() +
 "/?module=API&method=SitesManager.getSitesWithViewAccess&format=json&token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
-            // $("#loading").remove();
-            // $(".question2").after('<label for="site">Please choose a site:</label><select id="site" name="site" size="1"></select>');
             $.each(json, function(key, site) {
               $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
             });
@@ -56,16 +54,30 @@
           });
         });
 
+        $("#graph_screen").bind('pageAnimationStart', function() {
+          $("#visits").html("<thead> \
+            <tr> \
+              <td></td> \
+              <th>Besucher</th> \
+            </tr> \
+          </thead> \
+          <tbody></tbody>");
+          $("div.visualize").remove();
+          $("#graph_screen .loading").show();
+        });
+
         $("#graph_screen").bind('pageAnimationEnd', function() {
-        // $("#queryVisits").click(function() {
 $.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSite="+$("#site").val()+"&period=day&date=last10&format=json&token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
             $.each(json, function(key, value) {
               $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>")
             });
-            // $("#visits").show();
             $("#graph_screen .loading").hide();
             $("#visits").visualize({
-              type: 'bar', barGroupMargin: 2, parseDirection: 'y', appendKey: false, appendTitle: false
+              type: 'bar',
+              barGroupMargin: 2,
+              parseDirection: 'y',
+              appendKey: false,
+              appendTitle: false
             });
             $("#visits").addClass("accessHide");
             // var permalink = document.location;
@@ -110,14 +122,6 @@ $.getJSON($("#install").val()+"/?module=API&method=VisitsSummary.getVisits&idSit
         </div>
         <div class="container">
         <table id="visits" style="display:none;">
-          <caption>Besucher der letzten 10 Tage</captions>
-          <thead>
-            <tr>
-              <td></td>
-              <th>Besucher</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
         </table>
         </div>
       </ul>
