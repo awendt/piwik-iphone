@@ -23,24 +23,58 @@
         padding-left:50px;
       }
     </style>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
     <script type="text/javascript" src="jqtouch/all.js" ></script>
     <script type="text/javascript">
-      var jQT = new $.jQTouch({
-        icon: 'jqtouch.png',
-        slideSelector: 'body > * > ul li a, .forceSlide',
-        addGlossToIcon: false,
-        startupScreen: 'jqt_startup.png',
-        statusBar: 'black',
-        preloadImages: [
-          'jqtouch/apple-theme/img/backButton.png',
-          'jqtouch/apple-theme/img/grayButton.png',
-          'jqtouch/apple-theme/img/whiteButton.png',
-          'jqtouch/apple-theme/img/loading.gif'
-          ]
-      });
       $(function(){
+        var query_string_2hash = function(query_string) {
+          var hash = {};
+          $.each(query_string.split("&"), function(i, query_param) {
+            key_value = query_param.split("=");
+            hash[key_value[0]] = key_value[1];
+          });
+          return hash;
+        };
+
+        var reset_table = function() {
+          $("#visits").html("<thead> \
+            <tr> \
+              <td></td> \
+              <th>Besucher</th> \
+            </tr> \
+          </thead> \
+          <tbody></tbody>");
+          $("div.visualize").remove();
+          $("#graph_screen .loading").show();
+        };
+
+        var get_visitors = function(install, site, token) {
+          reset_table();
+          $.getJSON(install+
+              "/?module=API&method=VisitsSummary.getVisits" +
+              "&idSite="+ site + "&period=day&date=last10&format=json" +
+              "&token_auth="+ token +"&jsoncallback=?", function(json) {
+            $.each(json, function(key, value) {
+              $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
+            });
+            $("#graph_screen .loading").hide();
+            $("#visits").visualize({
+              type: 'bar',
+              barGroupMargin: 2,
+              parseDirection: 'y',
+              appendKey: false,
+              appendTitle: false
+            });
+            $("#visits").addClass("accessHide");
+          });
+        };
+
+        if (document.location.search.length > 0) {
+          var config = query_string_2hash(document.location.search.slice(1));
+          get_visitors(config.install, config.site, config.token || "");
+        }
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -55,42 +89,8 @@
           });
         });
 
-        $("#graph_screen").bind('pageAnimationStart', function() {
-          $("#visits").html("<thead> \
-            <tr> \
-              <td></td> \
-              <th>Besucher</th> \
-            </tr> \
-          </thead> \
-          <tbody></tbody>");
-          $("div.visualize").remove();
-          $("#graph_screen .loading").show();
-        });
-
         $("#graph_screen").bind('pageAnimationEnd', function() {
-          $.getJSON($("#install").val()+
-              "/?module=API&method=VisitsSummary.getVisits \
-              &idSite="+$("#site").val() + "&period=day&date=last10&format=json \
-              &token_auth="+$("#token").val()+"&jsoncallback=?", function(json) {
-            $.each(json, function(key, value) {
-              $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>")
-            });
-            $("#graph_screen .loading").hide();
-            $("#visits").visualize({
-              type: 'bar',
-              barGroupMargin: 2,
-              parseDirection: 'y',
-              appendKey: false,
-              appendTitle: false
-            });
-            $("#visits").addClass("accessHide");
-            // var permalink = document.location;
-            // permalink += '?token='+$("#token").val();
-            // permalink += '&site='+$("#site").val();
-            // permalink += '&install='+url($("#install").val());
-            // $("input[type=submit]").after('<a href="'+ permalink +'">Permalink for this setup</a>');
-            // $('<a href="#graph_screen" class="slide" />').click();
-          });
+          get_visitors($("#install").val(), $("#site").val(), $("#token").val());
         });
       });
     </script>
@@ -136,4 +136,26 @@
         </div>
       </form>
     </div>
+    <script type="text/javascript">
+      // reset 'current' class
+      if (document.location.search.length > 0) {
+        $("div#graph_screen").addClass("current");
+        $("div#home").removeClass("current");
+      }
+
+      var jQT = new $.jQTouch({
+        icon: 'jqtouch.png',
+        slideSelector: 'body > * > ul li a, .forceSlide',
+        addGlossToIcon: false,
+        startupScreen: 'jqt_startup.png',
+        statusBar: 'black',
+        preloadImages: [
+          'jqtouch/apple-theme/img/backButton.png',
+          'jqtouch/apple-theme/img/grayButton.png',
+          'jqtouch/apple-theme/img/whiteButton.png',
+          'jqtouch/apple-theme/img/loading.gif'
+          ]
+      });
+    </script>
   </body>
+</html>
