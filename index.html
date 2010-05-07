@@ -25,18 +25,29 @@
       }
     </style>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.cookie.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
     <script type="text/javascript" src="jqtouch/all.js" ></script>
     <script type="text/javascript">
+
+      var jQT = new $.jQTouch({
+        icon: 'jqtouch.png',
+        slideSelector: 'body > * > ul li a, .forceSlide',
+        addGlossToIcon: false,
+        startupScreen: 'jqt_startup.png',
+        statusBar: 'black',
+        preloadImages: [
+          'jqtouch/apple-theme/img/backButton.png',
+          'jqtouch/apple-theme/img/grayButton.png',
+          'jqtouch/apple-theme/img/whiteButton.png',
+          'jqtouch/apple-theme/img/loading.gif'
+          ]
+      });
+
       $(function(){
-        var query_string_2hash = function(query_string) {
-          var hash = {};
-          $.each(query_string.split("&"), function(i, query_param) {
-            key_value = query_param.split("=");
-            hash[key_value[0]] = key_value[1];
-          });
-          return hash;
-        };
+        if (!($.cookie('install') && $.cookie('site'))) {
+          jQT.goTo('#settings', 'slideup');
+        }
 
         var reset_table = function() {
           $("#visits").html("<thead> \
@@ -47,7 +58,7 @@
           </thead> \
           <tbody></tbody>");
           $("div.visualize").remove();
-          $("#graph_screen .loading").show();
+          $("#visitors_10days .loading").show();
         };
 
         var get_visitors = function(install, site, token) {
@@ -59,7 +70,7 @@
             $.each(json, function(key, value) {
               $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
             });
-            $("#graph_screen .loading").hide();
+            $("#visitors_10days .loading").hide();
             $("#visits").visualize({
               type: 'bar',
               barGroupMargin: 2,
@@ -70,11 +81,6 @@
             $("#visits").addClass("accessHide");
           });
         };
-
-        if (document.location.search.length > 0) {
-          var config = query_string_2hash(document.location.search.slice(1));
-          get_visitors(config.install, config.site, config.token || "");
-        }
 
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
@@ -90,15 +96,23 @@
           });
         });
 
-        $("#graph_screen").bind('pageAnimationEnd', function() {
-          get_visitors($("#install").val(), $("#site").val(), $("#token").val());
+        $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_visitors($.cookie('install'), $.cookie("site"), $.cookie("token"));
+        });
+
+        $("#save").click(function() {
+          $.cookie('install', $('#install').val());
+          $.cookie('token', $('#token').val());
+          $.cookie('site', $('#site').val());
+          jQT.goBack();
         });
       });
     </script>
 		<link rel="apple-touch-icon" href="apple-touch-icon.png" />
   </head>
   <body>
-    <div id="graph_screen">
+    <div id="visitors_10days">
       <div class="toolbar">
         <h1>Visits last 10 days</h1>
         <a class="back" href="#home">Back</a>
@@ -112,9 +126,10 @@
         </div>
       </ul>
     </div>
-    <div id="home" class="current">
+    <div id="settings" class="slideup">
       <div class="toolbar">
-        <h1>piwik + jQTouch</h1>
+        <h1>Settings</h1>
+        <a href="#" class="cancel button">Cancel</a>
       </div>
       <form>
         <h2>Where is your Piwik installation hosted?</h2>
@@ -134,30 +149,18 @@
               </select>
             </li>
           </ul>
-          <a href="#graph_screen" class="whiteButton submit forceSlide" id="queryVisits" style="margin:10px;">Show visitors</a>
+          <a href="#" class="whiteButton submit forceSlide" id="save" style="margin:10px;">Save</a>
         </div>
       </form>
     </div>
-    <script type="text/javascript">
-      // reset 'current' class
-      if (document.location.search.length > 0) {
-        $("div#graph_screen").addClass("current");
-        $("div#home").removeClass("current");
-      }
-
-      var jQT = new $.jQTouch({
-        icon: 'jqtouch.png',
-        slideSelector: 'body > * > ul li a, .forceSlide',
-        addGlossToIcon: false,
-        startupScreen: 'jqt_startup.png',
-        statusBar: 'black',
-        preloadImages: [
-          'jqtouch/apple-theme/img/backButton.png',
-          'jqtouch/apple-theme/img/grayButton.png',
-          'jqtouch/apple-theme/img/whiteButton.png',
-          'jqtouch/apple-theme/img/loading.gif'
-          ]
-      });
-    </script>
+    <div id="dashboard" class="current slideup">
+      <div class="toolbar">
+        <h1>Dashboard</h1>
+        <a href="#settings" class="button">Settings</a>
+      </div>
+      <ul class="rounded">
+        <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
+      </ul>
+    </div>
   </body>
 </html>
