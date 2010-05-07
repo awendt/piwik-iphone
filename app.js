@@ -16,6 +16,8 @@ $(function(){
   };
 
   var get_visitors = function(install, site, token) {
+    var data_accessed = $.cookie('install')+$.cookie('token')+$.cookie('site');
+    if ($("#visits").data('loaded') == data_accessed) { return; }
     reset_table();
     $.getJSON(install+
         "/?module=API&method=VisitsSummary.getVisits" +
@@ -33,6 +35,7 @@ $(function(){
         appendTitle: false
       });
       $("#visits").addClass("accessHide");
+      $("#visits").data('loaded', data_accessed);
     });
   };
 
