@@ -7,32 +7,17 @@
     <link type="text/css" rel="stylesheet" href="visualize.jQuery.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/jqtouch.min.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/apple-theme/theme.min.css"/>
-    <style type="text/css">
-      .loading {
-        background: url(jqtouch/apple-theme/img/loading.gif) no-repeat 50% center;
-        height:50px;
-      }
-      #visits {
-        width:240px;
-      }
-      .visualize-labels-x {
-        display:none;
-      }
-      .container {
-        width:320px;
-        margin:20px auto;
-        padding-left:50px;
-      }
-    </style>
+    <link type="text/css" rel="stylesheet" href="app.css"/>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <script type="text/javascript" src="jquery.cookie.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
     <script type="text/javascript" src="jqtouch/all.js" ></script>
+    <script type="text/javascript" src="app.js" ></script>
     <script type="text/javascript">
 
       var jQT = new $.jQTouch({
         icon: 'jqtouch.png',
-        slideSelector: 'body > * > ul li a, .forceSlide',
+        slideSelector: 'body > * > ul li a',
         addGlossToIcon: false,
         startupScreen: 'jqt_startup.png',
         statusBar: 'black',
@@ -44,70 +29,6 @@
           ]
       });
 
-      $(function(){
-        if (!($.cookie('install') && $.cookie('site'))) {
-          jQT.goTo('#settings', 'slideup');
-        }
-
-        var reset_table = function() {
-          $("#visits").html("<thead> \
-            <tr> \
-              <td></td> \
-              <th>Besucher</th> \
-            </tr> \
-          </thead> \
-          <tbody></tbody>");
-          $("div.visualize").remove();
-          $("#visitors_10days .loading").show();
-        };
-
-        var get_visitors = function(install, site, token) {
-          reset_table();
-          $.getJSON(install+
-              "/?module=API&method=VisitsSummary.getVisits" +
-              "&idSite="+ site + "&period=day&date=last10&format=json" +
-              "&token_auth="+ token +"&jsoncallback=?", function(json) {
-            $.each(json, function(key, value) {
-              $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
-            });
-            $("#visitors_10days .loading").hide();
-            $("#visits").visualize({
-              type: 'bar',
-              barGroupMargin: 2,
-              parseDirection: 'y',
-              appendKey: false,
-              appendTitle: false
-            });
-            $("#visits").addClass("accessHide");
-          });
-        };
-
-        $('#querySites').click(function() {
-          if ($("#install").val() === "") { return; }
-
-          $.getJSON($("#install").val() +
-              "/?module=API&method=SitesManager.getSitesWithViewAccess&format=json \
-              &token_auth="+$("#token").val()+ "&jsoncallback=?", function(json) {
-            $.each(json, function(key, site) {
-              $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
-            });
-            $(".question3").show();
-            $('#querySites').hide();
-          });
-        });
-
-        $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_visitors($.cookie('install'), $.cookie("site"), $.cookie("token"));
-        });
-
-        $("#save").click(function() {
-          $.cookie('install', $('#install').val());
-          $.cookie('token', $('#token').val());
-          $.cookie('site', $('#site').val());
-          jQT.goBack();
-        });
-      });
     </script>
 		<link rel="apple-touch-icon" href="apple-touch-icon.png" />
   </head>
@@ -149,7 +70,7 @@
               </select>
             </li>
           </ul>
-          <a href="#" class="whiteButton submit forceSlide" id="save" style="margin:10px;">Save</a>
+          <a href="#" class="whiteButton submit" id="save" style="margin:10px;">Save</a>
         </div>
       </form>
     </div>

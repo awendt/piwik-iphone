@@ -1,0 +1,15 @@
+.loading {
+  background: url(jqtouch/apple-theme/img/loading.gif) no-repeat 50% center;
+  height:50px;
+}
+#visits {
+  width:240px;
+}
+.visualize-labels-x {
+  display:none;
+}
+.container {
+  width:320px;
+  margin:20px auto;
+  padding-left:50px;
+}
