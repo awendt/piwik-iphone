@@ -29,8 +29,14 @@
       });
 
       $(function(){
+        var display_title = function() {
+          $("#dashboard h2").text("Statistics for "+ $.cookie('site_name'));
+        };
+
         if (!($.cookie('install') && $.cookie('site'))) {
           jQT.goTo('#settings', 'slideup');
+        } else if($.cookie('site_name')) {
+          display_title();
         }
 
         var reset_table = function() {
@@ -46,7 +52,7 @@
         };
 
         var get_visitors = function(install, site, token) {
-          var data_accessed = $.cookie('install')+$.cookie('token')+$.cookie('site');
+          var data_accessed = install+token+site;
           if ($("#visits").data('loaded') == data_accessed) { return; }
           reset_table();
           $.getJSON(install+
@@ -88,10 +94,16 @@
           get_visitors($.cookie('install'), $.cookie("site"), $.cookie("token"));
         });
 
+        $("#dashboard").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          display_title();
+        });
+
         $("#save").click(function() {
           $.cookie('install', $('#install').val());
           $.cookie('token', $('#token').val());
           $.cookie('site', $('#site').val());
+          $.cookie('site_name', $('#site :selected').text());
           jQT.goBack();
         });
       });
@@ -145,6 +157,7 @@
         <h1>Dashboard</h1>
         <a href="#settings" class="button slideup">Settings</a>
       </div>
+      <h2>No website set up</h2>
       <ul class="rounded">
         <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
       </ul>
