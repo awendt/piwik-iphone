@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex">
+    <title>Piwik for iPhone: Screenshots</title>
+    <style type="text/css">
+      body { margin:40px 0; font-family:Arial,Helvetica,FreeSans,sans-serif; font-size:1.5em; }
+      h1,h2 { text-align: center; color: #333; margin-bottom:20px; }
+      div { float:left; }
+      p { width:300px; margin-top:100px; margin-left:100px; }
+      img { position:absolute; left:400px; top: 100px; }
+      ul { width:200px; list-style-type:none; margin-top:200px; margin-left:100px;}
+      li { padding:10px; cursor:pointer; border:3px solid transparent; }
+      .current { border:3px solid #677D98; -moz-border-radius: 10px; -webkit-border-radius: 10px; }
+    </style>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        $("li").click(function() {
+          if ($(this).hasClass("current")) { return; }
+          $("img").hide();
+          $("img."+$(this).attr("class")).fadeIn('fast');
+          $("li").removeClass("current");
+          $(this).addClass("current");
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Screenshots of <a href="http://awendt.github.com/piwik-iphone/">Piwik for iPhone</a></h1>
+    <ul>
+      <li class="dashboard current">Dashboard</li>
+      <li class="settings">Settings</li>
+      <li class="visualization">Visualization</li>
+    </ul>
+    <img class="dashboard" src="images/piwik_iphone_dashboard.png" />
+    <img class="settings" src="images/piwik_iphone_settings.png" style="display:none;" />
+    <img class="visualization" src="images/piwik_iphone_visualize.png" style="display:none;" />
+    <p>Screenshots made with Fabian&nbsp;Kreiser's <a href="http://fabian-kreiser.com/downloads/">iPhone Screentaker</a></p>
+  </body>
+</html>
