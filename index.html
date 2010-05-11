@@ -95,6 +95,51 @@
           );
         };
 
+        var get_last10visitors = function(install, site, token) {
+          var data_accessed = install+token+site;
+          if ($("#visits").data('loaded') == data_accessed) { return; }
+          $("#last_10_visitors tbody").html("");
+          $.getJSON(
+            url_for({method: 'Live.getLastVisits'}),
+            function(json) {
+              if (json.result === "error") {
+                alert_error(json.message);
+                return;
+              }
+              var tmpText = "";
+              $.each(json, function(key, value) {
+                tmpText += "<tr><td>#"+(key+1)+"</td>";
+                // new or returned Visitor
+                tmpText += "<td>";
+                if(value.isVisitorReturning) tmpText += "+";
+                else tmpText += "++";
+                tmpText += "</td>";
+                // visitor country
+                tmpText += "<td><img src=\""+install+"/"+value.countryFlag+"\" alt=\"from:"+value.country+"\"></td>";
+                // visit length
+                tmpText += "<td>"+value.visitLengthPretty+"</td>";
+                // referer
+                tmpText += "<td>";
+                if(value.refererType == "searchEngine") tmpText += "<a href=\""+value.refererUrl+"\"  \
+                  target=\"_blank\">"+value.refererName+"</a>";
+                else if(value.refererType == "webite") tmpText += "<a href=\""+value.refererUrl+"\" target=\"_blank\">Website</a>";
+                tmpText += "</td>";
+                // operatingsystem
+                tmpText += "<td><img src=\""+install+"/"+value.operatingSystemIcon+"\" alt=\""+value.operatingSystemShortName+"\"></td>";
+                // browser
+                tmpText += "<td><img src=\""+install+"/"+value.browserIcon+"\" alt=\""+value.browser+"\"></td>";
+                tmpText += "</tr>";
+              });
+              $("#last_10_visitors .loading").hide();
+              $("#last_10_visitors tbody").append(tmpText);
+              $("#last_10_visitors table").show();
+              $("#last_10_visitors small").show();
+              $("#last_10_visitors .container").css("margin", "0px");
+              $("#last_10_visitors .container").css("padding-left", "5px");
+            }
+          );
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -122,6 +167,11 @@
         $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_visitors(localStorage.install, localStorage.site, localStorage.token);
+        });
+
+        $("#last_10_visitors").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_last10visitors(localStorage.install, localStorage.site, localStorage.token);
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -152,6 +202,42 @@
         <div class="container">
         <table id="visits" style="display:none;">
         </table>
+        </div>
+      </ul>
+    </div>
+    <div id="last_10_visitors">
+      <div class="toolbar">
+        <h1>Last 10 visitors</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul class="edit rounded">
+        <div class="loading">
+        </div>
+        <div class="container">
+          <table style="display:none">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>N/R</th>
+                <th>C</th>
+                <th>L</th>
+                <th>Re</th>
+                <th>O</th>
+                <th>B</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+          <br>
+          <small style="display:none">
+            N/R = New (+) or Returned (++) visitors<br>
+            C = Country<br>
+            L = visiting length<br>
+            Re = Referer (emty for direct access)<br>
+            O = Operating System<br>
+            B = Browser
+          </small>
         </div>
       </ul>
     </div>
@@ -190,6 +276,9 @@
       <h2>No website set up</h2>
       <ul class="rounded">
         <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
+      </ul>
+      <ul class="rounded">
+        <li class="arrow"><a href="#last_10_visitors">Last 10 visitors</a></li>
       </ul>
     </div>
   </body>
