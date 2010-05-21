@@ -28,6 +28,27 @@
       });
 
       $(function(){
+        var url_for = function(options) {
+          var settings = {
+            install: localStorage.install,
+            format: 'json',
+            token_auth: localStorage.token,
+            idSite: localStorage.site,
+          };
+          $.extend(settings, options);
+          var install = settings.install;
+          delete settings.install;
+
+          var query_elements = [];
+          $.each(settings, function(key, value) {
+            if (value) {
+              query_elements.push(key+"="+value);
+            }
+          });
+          query_elements.push("jsoncallback=?");
+          return install+"/?module=API&" + query_elements.join("&");
+        };
+
         var display_title = function() {
           $("#dashboard h2").text("Statistics for "+ localStorage.site_name);
         };
@@ -54,38 +75,48 @@
           var data_accessed = install+token+site;
           if ($("#visits").data('loaded') == data_accessed) { return; }
           reset_table();
-          $.getJSON(install+
-              "/?module=API&method=VisitsSummary.getVisits" +
-              "&idSite="+ site + "&period=day&date=last10&format=json" +
-              "&token_auth="+ token +"&jsoncallback=?", function(json) {
-            $.each(json, function(key, value) {
-              $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
-            });
-            $("#visitors_10days .loading").hide();
-            $("#visits").visualize({
-              type: 'bar',
-              barGroupMargin: 2,
-              parseDirection: 'y',
-              appendKey: false,
-              appendTitle: false
-            });
-            $("#visits").addClass("accessHide");
-            $("#visits").data('loaded', data_accessed);
-          });
+          $.getJSON(
+            url_for({method: 'VisitsSummary.getVisits', period: 'day', date: 'last10'}),
+            function(json) {
+              $.each(json, function(key, value) {
+                $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
+              });
+              $("#visitors_10days .loading").hide();
+              $("#visits").visualize({
+                type: 'bar',
+                barGroupMargin: 2,
+                parseDirection: 'y',
+                appendKey: false,
+                appendTitle: false
+              });
+              $("#visits").addClass("accessHide");
+              $("#visits").data('loaded', data_accessed);
+            }
+          );
         };
 
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
-          $.getJSON($("#install").val() +
-              "/?module=API&method=SitesManager.getSitesWithViewAccess&format=json \
-              &token_auth="+$("#token").val()+ "&jsoncallback=?", function(json) {
-            $.each(json, function(key, site) {
-              $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
-            });
-            $(".question3").show();
-            $('#querySites').hide();
-          });
+          $.getJSON(
+            url_for({
+              install: $("#install").val(),
+              method: 'SitesManager.getSitesWithViewAccess',
+              token_auth: $("#token").val()
+            }),
+            function(json) {
+              if (json.length === 0) {
+                alert("Sorry, I couldn't find any sites I can access.\n\n" +
+                    "Are URL and token really correct?");
+                return;
+              }
+              $.each(json, function(key, site) {
+                $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
+              });
+              $(".question3").show();
+              $('#querySites').hide();
+            }
+          );
         });
 
         $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
