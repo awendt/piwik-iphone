@@ -4,13 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="robots" content="noindex">
     <title>piwik + jQTouch</title>
-    <link type="text/css" rel="stylesheet" href="visualize.jQuery.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/jqtouch.min.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/apple-theme/theme.min.css"/>
     <link type="text/css" rel="stylesheet" href="app.css"/>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
-    <script type="text/javascript" src="jqtouch/all.js" ></script>
+    <script type="text/javascript" src="jqtouch/jqtouch.min.js" ></script>
+    <script type="text/javascript" src="raphael-min.js" ></script>
+    <script type="text/javascript" src="g.raphael-min.js" ></script>
+    <script type="text/javascript" src="g.bar-min.js" ></script>
+    <script type="text/javascript" src="underscore-min.js" ></script>
     <script type="text/javascript" src="piwik_iphone.js" ></script>
     <script type="text/javascript">
 
@@ -39,22 +41,9 @@
           display_title();
         }
 
-        var reset_table = function() {
-          $("#visits").html("<thead> \
-            <tr> \
-              <td></td> \
-              <th>Besucher</th> \
-            </tr> \
-          </thead> \
-          <tbody></tbody>");
-          $("div.visualize").remove();
-          $("#visitors_10days .loading").show();
-        };
-
         var get_visitors = function(install, site, token) {
           var data_accessed = install+token+site;
           if ($("#visits").data('loaded') == data_accessed) { return; }
-          reset_table();
           $.getJSON(
             piwik_iphone.url_for({
               method: 'VisitsSummary.getVisits',
@@ -62,18 +51,10 @@
               date: 'last10'
             }),
             function(json) {
-              $.each(json, function(key, value) {
-                $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
-              });
+              var visits = _.map(json, function(visitors, date) { return visitors; });
+              var r = Raphael("visits", 240, 320);
+              r.g.barchart(10, 10, 240, 320, [visits]);
               $("#visitors_10days .loading").hide();
-              $("#visits").visualize({
-                type: 'bar',
-                barGroupMargin: 2,
-                parseDirection: 'y',
-                appendKey: false,
-                appendTitle: false
-              });
-              $("#visits").addClass("accessHide");
               $("#visits").data('loaded', data_accessed);
             }
           );
@@ -131,12 +112,8 @@
         <a class="back" href="#home">Back</a>
       </div>
       <ul class="edit rounded">
-        <div class="loading">
-        </div>
-        <div class="container">
-        <table id="visits" style="display:none;">
-        </table>
-        </div>
+        <div class="loading"></div>
+        <div id="visits"></div>
       </ul>
     </div>
     <div id="settings">
