@@ -11,6 +11,7 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
     <script type="text/javascript" src="jqtouch/all.js" ></script>
+    <script type="text/javascript" src="piwik_iphone.js" ></script>
     <script type="text/javascript">
 
       var jQT = $.jQTouch({
@@ -28,27 +29,6 @@
       });
 
       $(function(){
-        var url_for = function(options) {
-          var settings = {
-            install: localStorage.install,
-            format: 'json',
-            token_auth: localStorage.token,
-            idSite: localStorage.site,
-          };
-          $.extend(settings, options);
-          var install = settings.install;
-          delete settings.install;
-
-          var query_elements = [];
-          $.each(settings, function(key, value) {
-            if (value) {
-              query_elements.push(key+"="+value);
-            }
-          });
-          query_elements.push("jsoncallback=?");
-          return install+"/?module=API&" + query_elements.join("&");
-        };
-
         var display_title = function() {
           $("#dashboard h2").text("Statistics for "+ localStorage.site_name);
         };
@@ -76,7 +56,11 @@
           if ($("#visits").data('loaded') == data_accessed) { return; }
           reset_table();
           $.getJSON(
-            url_for({method: 'VisitsSummary.getVisits', period: 'day', date: 'last10'}),
+            piwik_iphone.url_for({
+              method: 'VisitsSummary.getVisits',
+              period: 'day',
+              date: 'last10'
+            }),
             function(json) {
               $.each(json, function(key, value) {
                 $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
@@ -99,7 +83,7 @@
           if ($("#install").val() === "") { return; }
 
           $.getJSON(
-            url_for({
+            piwik_iphone.url_for({
               install: $("#install").val(),
               method: 'SitesManager.getSitesWithViewAccess',
               token_auth: $("#token").val()
