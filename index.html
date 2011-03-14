@@ -60,6 +60,25 @@
           );
         };
 
+        var get_conversion_rate = function(install, site, token) {
+          var data_accessed = install+token+site;
+          if ($("#conversion_rate_graph").data('loaded') == data_accessed) { return; }
+          $.getJSON(
+            piwik_iphone.url_for({
+              method: 'Goals.getConversionRate',
+              period: 'day',
+              date: 'last10'
+            }),
+            function(json) {
+              var visits = _.map(json, function(visitors, date) { return visitors; });
+              var r = Raphael("conversion_rate_graph", 240, 320);
+              r.g.barchart(10, 10, 240, 320, [visits]);
+              $("#conversion_rate .loading").hide();
+              $("#conversion_rate_graph").data('loaded', data_accessed);
+            }
+          );
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -89,6 +108,11 @@
           get_visitors(localStorage.install, localStorage.site, localStorage.token);
         });
 
+        $("#conversion_rate").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_conversion_rate(localStorage.install, localStorage.site, localStorage.token);
+        });
+
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           display_title();
@@ -114,6 +138,16 @@
       <ul class="edit rounded">
         <div class="loading"></div>
         <div id="visits"></div>
+      </ul>
+    </div>
+    <div id="conversion_rate">
+      <div class="toolbar">
+        <h1>Conversion rate</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul class="edit rounded">
+        <div class="loading"></div>
+        <div id="conversion_rate_graph"></div>
       </ul>
     </div>
     <div id="settings">
@@ -151,6 +185,7 @@
       <h2>No website set up</h2>
       <ul class="rounded">
         <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
+        <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
       </ul>
     </div>
   </body>
