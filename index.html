@@ -54,7 +54,8 @@
               var visits = _.map(json, function(summary, date) { return summary['nb_visits']; });
               var bounces = _.map(json, function(summary, date) { return summary['bounce_count']; });
               var r = Raphael("visits", 240, 320);
-              r.g.barchart(10, 10, 240, 320, [visits, bounces]);
+              var colors = _.map([0.6,0.05], function(i) { return "hsb("+i+", .75, .75)"; });
+              r.g.barchart(10, 10, 240, 320, [visits, bounces], {colors: colors});
               $("#visitors_10days .loading").hide();
               $("#visits").data('loaded', data_accessed);
             }
