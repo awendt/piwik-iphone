@@ -46,14 +46,15 @@
           if ($("#visits").data('loaded') == data_accessed) { return; }
           $.getJSON(
             piwik_iphone.url_for({
-              method: 'VisitsSummary.getVisits',
+              method: 'VisitsSummary.get',
               period: 'day',
               date: 'last10'
             }),
             function(json) {
-              var visits = _.map(json, function(visitors, date) { return visitors; });
+              var visits = _.map(json, function(summary, date) { return summary['nb_visits']; });
+              var bounces = _.map(json, function(summary, date) { return summary['bounce_count']; });
               var r = Raphael("visits", 240, 320);
-              r.g.barchart(10, 10, 240, 320, [visits]);
+              r.g.barchart(10, 10, 240, 320, [visits, bounces]);
               $("#visitors_10days .loading").hide();
               $("#visits").data('loaded', data_accessed);
             }
