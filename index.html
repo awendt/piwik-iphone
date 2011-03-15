@@ -44,41 +44,27 @@
         var get_visitors = function(install, site, token) {
           var data_accessed = install+token+site;
           if ($("#visits").data('loaded') == data_accessed) { return; }
-          $.getJSON(
-            piwik.url_for({
-              method: 'VisitsSummary.get',
-              period: 'day',
-              date: 'last10'
-            }),
-            function(json) {
-              var visits = _.map(json, function(summary, date) { return summary['nb_visits']; });
-              var bounces = _.map(json, function(summary, date) { return summary['bounce_count']; });
-              var r = Raphael("visits", 240, 320);
-              var colors = _.map([0.6,0.05], function(i) { return "hsb("+i+", .75, .75)"; });
-              r.g.barchart(10, 10, 240, 320, [visits, bounces], {colors: colors});
-              $("#visitors_10days .loading").hide();
-              $("#visits").data('loaded', data_accessed);
-            }
-          );
+          piwik.get('VisitsSummary.get', function(json) {
+            var visits = _.map(json, function(summary, date) { return summary['nb_visits']; });
+            var bounces = _.map(json, function(summary, date) { return summary['bounce_count']; });
+            var r = Raphael("visits", 240, 320);
+            var colors = _.map([0.6,0.05], function(i) { return "hsb("+i+", .75, .75)"; });
+            r.g.barchart(10, 10, 240, 320, [visits, bounces], {colors: colors});
+            $("#visitors .loading").hide();
+            $("#visits").data('loaded', data_accessed);
+          });
         };
 
         var get_conversion_rate = function(install, site, token) {
           var data_accessed = install+token+site;
           if ($("#conversion_rate_graph").data('loaded') == data_accessed) { return; }
-          $.getJSON(
-            piwik.url_for({
-              method: 'Goals.getConversionRate',
-              period: 'day',
-              date: 'last10'
-            }),
-            function(json) {
-              var visits = _.map(json, function(visitors, date) { return visitors; });
-              var r = Raphael("conversion_rate_graph", 240, 320);
-              r.g.barchart(10, 10, 240, 320, [visits]);
-              $("#conversion_rate .loading").hide();
-              $("#conversion_rate_graph").data('loaded', data_accessed);
-            }
-          );
+          piwik.get('Goals.getConversionRate', function(json) {
+            var visits = _.map(json, function(visitors, date) { return visitors; });
+            var r = Raphael("conversion_rate_graph", 240, 320);
+            r.g.barchart(10, 10, 240, 320, [visits]);
+            $("#conversion_rate .loading").hide();
+            $("#conversion_rate_graph").data('loaded', data_accessed);
+          });
         };
 
         $('#querySites').click(function() {
@@ -105,7 +91,7 @@
           );
         });
 
-        $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
+        $("#visitors").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_visitors(localStorage.install, localStorage.site, localStorage.token);
         });
@@ -132,7 +118,7 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   </head>
   <body>
-    <div id="visitors_10days">
+    <div id="visitors">
       <div class="toolbar">
         <h1>Visits last 10 days</h1>
         <a class="back" href="#home">Back</a>
@@ -186,7 +172,7 @@
       </div>
       <h2>No website set up</h2>
       <ul class="rounded">
-        <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
+        <li class="arrow"><a href="#visitors">Visitors</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
       </ul>
     </div>

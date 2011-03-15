@@ -2,6 +2,10 @@ require("piwik.js");
 
 Screw.Unit(function() {
   describe("Piwik", function() {
+    before(function() {
+      localStorage.clear();
+    });
+
     describe("routing", function() {
       it("uses defaults", function() {
         url = piwik.url_for();
@@ -13,6 +17,22 @@ Screw.Unit(function() {
       it("turns given hash into URL params", function() {
         url = piwik.url_for({some: 'parameter'});
         expect(url).to(match, /\/\?.*some=parameter/);
+      });
+
+      describe("timespan", function() {
+        it("uses defaults", function() {
+          url = piwik.url_for();
+          expect(url).to(match, /\/\?.*period=day/);
+          expect(url).to(match, /\/\?.*date=last10/);
+        });
+
+        it("is configurable", function() {
+          localStorage.period = 'month';
+          localStorage.date = 'last11';
+          url = piwik.url_for();
+          expect(url).to(match, /\/\?.*period=month/);
+          expect(url).to(match, /\/\?.*date=last11/);
+        });
       });
     });
 

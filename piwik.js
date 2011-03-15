@@ -6,6 +6,8 @@ var piwik = (function() {
         format: 'json',
         token_auth: localStorage.token,
         idSite: localStorage.site,
+        period: localStorage.period || 'day',
+        date: localStorage.date || 'last10',
       };
       $.extend(settings, options);
       var install = settings.install;
