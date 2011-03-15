@@ -113,6 +113,10 @@
           localStorage.site_name = $('#site :selected').text();
           jQT.goBack();
         });
+
+        $("#period").change(function() {
+          localStorage.period = $(this).val();
+        });
       });
     </script>
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -174,6 +178,14 @@
       <ul class="rounded">
         <li class="arrow"><a href="#visitors">Visitors</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
+        <li>
+          <select id="period">
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+          </select>
+        </li>
       </ul>
     </div>
   </body>
