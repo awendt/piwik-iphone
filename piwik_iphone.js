@@ -19,6 +19,10 @@ var piwik_iphone = (function() {
       });
       query_elements.push("jsoncallback=?");
       return install+"/?module=API&" + query_elements.join("&");
+    },
+
+    get: function(method, callback) {
+      $.getJSON(piwik_iphone.url_for({method: method}), callback);
     }
   };
 
