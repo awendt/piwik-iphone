@@ -1,4 +1,4 @@
-var piwik_iphone = (function() {
+var piwik = (function() {
   var that = {
     url_for: function(options) {
       var settings = {
@@ -22,7 +22,7 @@ var piwik_iphone = (function() {
     },
 
     get: function(method, callback) {
-      $.getJSON(piwik_iphone.url_for({method: method}), callback);
+      $.getJSON(piwik.url_for({method: method}), callback);
     }
   };
 

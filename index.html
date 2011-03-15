@@ -13,7 +13,7 @@
     <script type="text/javascript" src="g.raphael-min.js" ></script>
     <script type="text/javascript" src="g.bar-min.js" ></script>
     <script type="text/javascript" src="underscore-min.js" ></script>
-    <script type="text/javascript" src="piwik_iphone.js" ></script>
+    <script type="text/javascript" src="piwik.js" ></script>
     <script type="text/javascript">
 
       var jQT = $.jQTouch({
@@ -45,7 +45,7 @@
           var data_accessed = install+token+site;
           if ($("#visits").data('loaded') == data_accessed) { return; }
           $.getJSON(
-            piwik_iphone.url_for({
+            piwik.url_for({
               method: 'VisitsSummary.get',
               period: 'day',
               date: 'last10'
@@ -66,7 +66,7 @@
           var data_accessed = install+token+site;
           if ($("#conversion_rate_graph").data('loaded') == data_accessed) { return; }
           $.getJSON(
-            piwik_iphone.url_for({
+            piwik.url_for({
               method: 'Goals.getConversionRate',
               period: 'day',
               date: 'last10'
@@ -85,7 +85,7 @@
           if ($("#install").val() === "") { return; }
 
           $.getJSON(
-            piwik_iphone.url_for({
+            piwik.url_for({
               install: $("#install").val(),
               method: 'SitesManager.getSitesWithViewAccess',
               token_auth: $("#token").val()

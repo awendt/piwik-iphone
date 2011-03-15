@@ -1,17 +1,17 @@
-require("piwik_iphone.js");
+require("piwik.js");
 
 Screw.Unit(function() {
-  describe("Piwik on iPhone", function() {
+  describe("Piwik", function() {
     describe("routing", function() {
       it("uses defaults", function() {
-        url = piwik_iphone.url_for();
+        url = piwik.url_for();
         expect(url).to(match, /\/\?module=API/);
         expect(url).to(match, /\/\?.*format=json/);
         expect(url).to(match, /\/\?.*jsoncallback=\?$/);
       });
 
       it("turns given hash into URL params", function() {
-        url = piwik_iphone.url_for({some: 'parameter'});
+        url = piwik.url_for({some: 'parameter'});
         expect(url).to(match, /\/\?.*some=parameter/);
       });
     });
@@ -28,10 +28,10 @@ Screw.Unit(function() {
       });
 
       it("uses calls jQuery.getJSON with the correct URL", function() {
-        mock(piwik_iphone).must_receive("url_for").with_arguments(
+        mock(piwik).must_receive("url_for").with_arguments(
             {method: "Goals.getConversionRate"}).and_return("/some/url");
 
-        piwik_iphone.get("Goals.getConversionRate");
+        piwik.get("Goals.getConversionRate");
         expect(fetches_from).to(be, "/some/url");
       });
 
@@ -40,7 +40,7 @@ Screw.Unit(function() {
         var do_something = function() {
           invokations += 1;
         };
-        piwik_iphone.get("Goals.getConversionRate", do_something);
+        piwik.get("Goals.getConversionRate", do_something);
         expect(invokations).to(be, 0);
         success_fn();
         expect(invokations).to(be, 1);
