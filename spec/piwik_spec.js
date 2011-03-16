@@ -1,6 +1,8 @@
 require("piwik.js");
 
 Screw.Unit(function() {
+  use_fixture("piwik");
+
   describe("Piwik", function() {
     before(function() {
       localStorage.clear();
@@ -41,7 +43,7 @@ Screw.Unit(function() {
       var success_fn;
 
       before(function() {
-        mock(jQuery).must_receive("getJSON").and_execute(function(url, callback) {
+        mock(jQuery).should_receive("getJSON").and_execute(function(url, callback) {
           fetches_from = url;
           success_fn = callback;
         });
@@ -64,6 +66,30 @@ Screw.Unit(function() {
         expect(invokations).to(be, 0);
         success_fn();
         expect(invokations).to(be, 1);
+      });
+
+      // Might want to call url_for with arbitrary params, see also $.isPlainObject()
+      it("allows for a hash as first param to pass to url_for")
+
+      describe("caching data", function() {
+        it("stores the URL in 'data' of the element with the given selector", function() {
+          mock(piwik).must_receive('url_for').and_return("/some/url");
+          piwik.get("Goals.getConversionRate", "#some_element", mock_function());
+
+          expect($("#some_element").data('showing')).to(be_undefined);
+          success_fn();
+          expect($("#some_element").data('showing')).to(be, '/some/url');
+        });
+
+        it("does not fetch again if 'data' matches current URL", function() {
+          mock(jQuery).should_not_receive("getJSON");
+          var do_something = mock_function();
+          mock(piwik).must_receive('url_for').and_return('/already/accessed');
+          $("#some_element").data('showing', '/already/accessed')
+          piwik.get("Goals.getConversionRate", "#some_element", do_something);
+
+          do_something.should_not_be_invoked();
+        });
       });
     });
   });

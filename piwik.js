@@ -23,8 +23,19 @@ var piwik = (function() {
       return install+"/?module=API&" + query_elements.join("&");
     },
 
-    get: function(method, callback) {
-      $.getJSON(piwik.url_for({method: method}), callback);
+    get: function(method, cache_selector, callback) {
+      if ($.isFunction(cache_selector) && !callback) {
+        callback = cache_selector;
+        cache_selector = null;
+      }
+      var url = piwik.url_for({method: method});
+      if ($(cache_selector).data('showing') === url) { return; }
+      $.getJSON(url, function(json) {
+        callback(json);
+        if ($(cache_selector).length === 1) {
+          $(cache_selector).data('showing', url);
+        }
+      });
     }
   };
 

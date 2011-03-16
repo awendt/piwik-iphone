@@ -41,29 +41,23 @@
           display_title();
         }
 
-        var get_visitors = function(install, site, token) {
-          var data_accessed = install+token+site;
-          if ($("#visits").data('loaded') == data_accessed) { return; }
-          piwik.get('VisitsSummary.get', function(json) {
+        var get_visitors = function() {
+          piwik.get('VisitsSummary.get', '#visits', function(json) {
             var visits = _.map(json, function(summary, date) { return summary['nb_visits']; });
             var bounces = _.map(json, function(summary, date) { return summary['bounce_count']; });
             var r = Raphael("visits", 240, 320);
             var colors = _.map([0.6,0.05], function(i) { return "hsb("+i+", .75, .75)"; });
             r.g.barchart(10, 10, 240, 320, [visits, bounces], {colors: colors});
             $("#visitors .loading").hide();
-            $("#visits").data('loaded', data_accessed);
           });
         };
 
-        var get_conversion_rate = function(install, site, token) {
-          var data_accessed = install+token+site;
-          if ($("#conversion_rate_graph").data('loaded') == data_accessed) { return; }
-          piwik.get('Goals.getConversionRate', function(json) {
+        var get_conversion_rate = function() {
+          piwik.get('Goals.getConversionRate', '#conversion_rate_graph', function(json) {
             var visits = _.map(json, function(visitors, date) { return visitors; });
             var r = Raphael("conversion_rate_graph", 240, 320);
             r.g.barchart(10, 10, 240, 320, [visits]);
             $("#conversion_rate .loading").hide();
-            $("#conversion_rate_graph").data('loaded', data_accessed);
           });
         };
 
@@ -93,12 +87,12 @@
 
         $("#visitors").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
-          get_visitors(localStorage.install, localStorage.site, localStorage.token);
+          get_visitors();
         });
 
         $("#conversion_rate").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
-          get_conversion_rate(localStorage.install, localStorage.site, localStorage.token);
+          get_conversion_rate();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
