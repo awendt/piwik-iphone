@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="robots" content="noindex">
     <title>piwik + jQTouch</title>
-    <link type="text/css" rel="stylesheet" href="visualize.jQuery.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/jqtouch.min.css"/>
     <link type="text/css" rel="stylesheet" href="jqtouch/apple-theme/theme.min.css"/>
     <link type="text/css" rel="stylesheet" href="app.css"/>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <!--[if IE]><script type="text/javascript" src="excanvas.compiled.js"></script><![endif]-->
-    <script type="text/javascript" src="jqtouch/all.js" ></script>
+    <script type="text/javascript" src="jquery-1.5.1.min.js"></script>
+    <script type="text/javascript" src="jqtouch/jqtouch.min.js" ></script>
+    <script type="text/javascript" src="flot/jquery.flot.min.js" ></script>
+    <script type="text/javascript" src="underscore-min.js" ></script>
+    <script type="text/javascript" src="piwik.js" ></script>
     <script type="text/javascript">
 
       var jQT = $.jQTouch({
@@ -28,74 +29,134 @@
       });
 
       $(function(){
-        var display_title = function() {
+        var init = function() {
           $("#dashboard h2").text("Statistics for "+ localStorage.site_name);
+          if (localStorage.period) {
+            $("#period").val(localStorage.period);
+          }
         };
 
         if (!(localStorage.install && localStorage.site)) {
           jQT.goTo('#settings', 'slideup');
         } else if (localStorage.site_name) {
-          display_title();
+          init();
         }
 
-        var reset_table = function() {
-          $("#visits").html("<thead> \
-            <tr> \
-              <td></td> \
-              <th>Besucher</th> \
-            </tr> \
-          </thead> \
-          <tbody></tbody>");
-          $("div.visualize").remove();
-          $("#visitors_10days .loading").show();
+        // helper for returning the weekends in a period
+        // Credit: examples/visitors.html
+        var weekendAreas = function(axes) {
+            var markings = [];
+            var d = new Date(axes.xaxis.min);
+            // go to the first Saturday
+            d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+            d.setUTCSeconds(0);
+            d.setUTCMinutes(0);
+            d.setUTCHours(0);
+            var i = d.getTime();
+            do {
+                // when we don't set yaxis, the rectangle automatically
+                // extends to infinity upwards and downwards
+                markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+                i += 7 * 24 * 60 * 60 * 1000;
+            } while (i < axes.xaxis.max);
+
+            return markings;
         };
 
-        var get_visitors = function(install, site, token) {
-          var data_accessed = install+token+site;
-          if ($("#visits").data('loaded') == data_accessed) { return; }
-          reset_table();
-          $.getJSON(install+
-              "/?module=API&method=VisitsSummary.getVisits" +
-              "&idSite="+ site + "&period=day&date=last10&format=json" +
-              "&token_auth="+ token +"&jsoncallback=?", function(json) {
-            $.each(json, function(key, value) {
-              $('#visits tbody').append("<tr><th>"+key+"</th><td>"+value+"</td></tr>");
+        var unix_milliseconds_from = function(piwik_date) {
+          return piwik.convert_date(piwik_date).getTime();
+        };
+
+        var timeformat_for_period = function() {
+          switch(localStorage.period) {
+            case "day": return "%d"; break;
+            case "week": return "%b"; break;
+            case "month": return "%b"; break;
+            case "year": return "%y"; break;
+          }
+        };
+
+        var default_flot_options = {
+          grid: { markings: weekendAreas },
+          points: {
+            show: true
+          },
+          lines: {
+            show: true
+          },
+          xaxis: {
+            mode: "time", timeformat: timeformat_for_period()
+          },
+          legend: {
+            position: 'sw'
+          }
+        };
+        var get_visitors = function() {
+          piwik.get('VisitsSummary.get', '#summary', function(json) {
+            var visits = _.map(json, function(summary, date) {
+              return [unix_milliseconds_from(date), summary['nb_visits']];
             });
-            $("#visitors_10days .loading").hide();
-            $("#visits").visualize({
-              type: 'bar',
-              barGroupMargin: 2,
-              parseDirection: 'y',
-              appendKey: false,
-              appendTitle: false
+            var bounces = _.map(json, function(summary, date) {
+              return [unix_milliseconds_from(date), summary['bounce_count']];
             });
-            $("#visits").addClass("accessHide");
-            $("#visits").data('loaded', data_accessed);
+            var conversions = _.map(json, function(summary, date) {
+              return [unix_milliseconds_from(date), summary['nb_visits_converted'] || 0];
+            });
+            var d1 = {label: 'Total Visitors', color: 0, data: visits};
+            var d2 = {label: 'Bounces', color: 2, data: bounces};
+            var d3 = {label: 'Conversions', color: 3, data: conversions};
+            $.plot($("#summary"), [d1, d2, d3], default_flot_options);
+            $("#visitors .loading").hide();
+          });
+        };
+
+        var get_conversion_rate = function() {
+          piwik.get('Goals.getConversionRate', '#conversion_rate_graph', function(json) {
+            var conversion_rates = _.map(json, function(rate, date) {
+              return [unix_milliseconds_from(date), rate];
+            });
+            $.plot($("#conversion_rate_graph"), [conversion_rates], default_flot_options);
+            $("#conversion_rate .loading").hide();
           });
         };
 
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
-          $.getJSON($("#install").val() +
-              "/?module=API&method=SitesManager.getSitesWithViewAccess&format=json \
-              &token_auth="+$("#token").val()+ "&jsoncallback=?", function(json) {
-            $.each(json, function(key, site) {
-              $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
-            });
-            $(".question3").show();
-            $('#querySites').hide();
-          });
+          $.getJSON(
+            piwik.url_for({
+              install: $("#install").val(),
+              method: 'SitesManager.getSitesWithViewAccess',
+              token_auth: $("#token").val()
+            }),
+            function(json) {
+              if (json.length === 0) {
+                alert("Sorry, I couldn't find any sites I can access.\n\n" +
+                    "Are URL and token really correct?");
+                return;
+              }
+              $.each(json, function(key, site) {
+                $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
+              });
+              $(".question3").show();
+              $('#querySites').hide();
+            }
+          );
         });
 
-        $("#visitors_10days").bind('pageAnimationEnd', function(event, info) {
+        $("#visitors").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
-          get_visitors(localStorage.install, localStorage.site, localStorage.token);
+          get_visitors();
+        });
+
+        $("#conversion_rate").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_conversion_rate();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
-          display_title();
+          init();
         });
 
         $("#save").click(function() {
@@ -105,23 +166,33 @@
           localStorage.site_name = $('#site :selected').text();
           jQT.goBack();
         });
+
+        $("#period").change(function() {
+          localStorage.period = $(this).val();
+        });
       });
     </script>
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   </head>
   <body>
-    <div id="visitors_10days">
+    <div id="visitors">
       <div class="toolbar">
-        <h1>Visits last 10 days</h1>
+        <h1>Summary</h1>
         <a class="back" href="#home">Back</a>
       </div>
       <ul class="edit rounded">
-        <div class="loading">
-        </div>
-        <div class="container">
-        <table id="visits" style="display:none;">
-        </table>
-        </div>
+        <div class="loading"></div>
+        <div id="summary" class="graph"></div>
+      </ul>
+    </div>
+    <div id="conversion_rate">
+      <div class="toolbar">
+        <h1>Conversion rate</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul class="edit rounded">
+        <div class="loading"></div>
+        <div id="conversion_rate_graph" class="graph"></div>
       </ul>
     </div>
     <div id="settings">
@@ -158,7 +229,16 @@
       </div>
       <h2>No website set up</h2>
       <ul class="rounded">
-        <li class="arrow"><a href="#visitors_10days">Visitors last 10 days</a></li>
+        <li class="arrow"><a href="#visitors">Summary</a></li>
+        <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
+        <li>
+          <select id="period">
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+          </select>
+        </li>
       </ul>
     </div>
   </body>
