@@ -29,14 +29,17 @@
       });
 
       $(function(){
-        var display_title = function() {
+        var init = function() {
           $("#dashboard h2").text("Statistics for "+ localStorage.site_name);
+          if (localStorage.period) {
+            $("#period").val(localStorage.period);
+          }
         };
 
         if (!(localStorage.install && localStorage.site)) {
           jQT.goTo('#settings', 'slideup');
         } else if (localStorage.site_name) {
-          display_title();
+          init();
         }
 
         // helper for returning the weekends in a period
@@ -58,7 +61,7 @@
             } while (i < axes.xaxis.max);
 
             return markings;
-        }
+        };
 
         var unix_milliseconds_from = function(piwik_date) {
           return (new Date(piwik_date.replace(/-/g, '/'))).getTime();
@@ -147,7 +150,7 @@
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
-          display_title();
+          init();
         });
 
         $("#save").click(function() {
