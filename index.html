@@ -76,6 +76,18 @@
           }
         };
 
+        var default_flot_options = {
+          grid: { markings: weekendAreas },
+          points: {
+            show: true
+          },
+          lines: {
+            show: true
+          },
+          xaxis: {
+            mode: "time", timeformat: timeformat_for_period()
+          }
+        };
         var get_visitors = function() {
           piwik.get('VisitsSummary.get', '#visits', function(json) {
             var visits = _.map(json, function(summary, date) {
@@ -84,19 +96,14 @@
             var bounces = _.map(json, function(summary, date) {
               return [unix_milliseconds_from(date), summary['bounce_count']];
             });
-            $("#visits").css({width: '300px', height:'400px'});
-            $.plot($("#visits"), [visits, bounces], {
-              grid: { markings: weekendAreas },
-              points: {
-                show: true
-              },
-              lines: {
-                show: true
-              },
-              xaxis: {
-                mode: "time", timeformat: timeformat_for_period()
-              }
+            var conversions = _.map(json, function(summary, date) {
+              return [unix_milliseconds_from(date), summary['nb_visits_converted'] || 0];
             });
+            $("#visits").css({width: '280px', height:'350px'});
+            var d1 = {label: 'Total Visitors', color: 0, data: visits};
+            var d2 = {label: 'Bounces', color: 2, data: bounces};
+            var d3 = {label: 'Conversions', color: 3, data: conversions};
+            $.plot($("#visits"), [d1, d2, d3], default_flot_options);
             $("#visitors .loading").hide();
           });
         };
@@ -106,19 +113,8 @@
             var conversion_rates = _.map(json, function(rate, date) {
               return [unix_milliseconds_from(date), rate];
             });
-            $("#conversion_rate_graph").css({width: '300px', height:'400px'});
-            $.plot($("#conversion_rate_graph"), [conversion_rates], {
-              grid: { markings: weekendAreas },
-              points: {
-                show: true
-              },
-              lines: {
-                show: true
-              },
-              xaxis: {
-                mode: "time", timeformat: timeformat_for_period()
-              }
-            });
+            $("#conversion_rate_graph").css({width: '280px', height:'350px'});
+            $.plot($("#conversion_rate_graph"), [conversion_rates], default_flot_options);
             $("#conversion_rate .loading").hide();
           });
         };
