@@ -86,10 +86,13 @@
           },
           xaxis: {
             mode: "time", timeformat: timeformat_for_period()
+          },
+          legend: {
+            position: 'sw'
           }
         };
         var get_visitors = function() {
-          piwik.get('VisitsSummary.get', '#visits', function(json) {
+          piwik.get('VisitsSummary.get', '#summary', function(json) {
             var visits = _.map(json, function(summary, date) {
               return [unix_milliseconds_from(date), summary['nb_visits']];
             });
@@ -99,11 +102,10 @@
             var conversions = _.map(json, function(summary, date) {
               return [unix_milliseconds_from(date), summary['nb_visits_converted'] || 0];
             });
-            $("#visits").css({width: '280px', height:'350px'});
             var d1 = {label: 'Total Visitors', color: 0, data: visits};
             var d2 = {label: 'Bounces', color: 2, data: bounces};
             var d3 = {label: 'Conversions', color: 3, data: conversions};
-            $.plot($("#visits"), [d1, d2, d3], default_flot_options);
+            $.plot($("#summary"), [d1, d2, d3], default_flot_options);
             $("#visitors .loading").hide();
           });
         };
@@ -113,7 +115,6 @@
             var conversion_rates = _.map(json, function(rate, date) {
               return [unix_milliseconds_from(date), rate];
             });
-            $("#conversion_rate_graph").css({width: '280px', height:'350px'});
             $.plot($("#conversion_rate_graph"), [conversion_rates], default_flot_options);
             $("#conversion_rate .loading").hide();
           });
@@ -176,12 +177,12 @@
   <body>
     <div id="visitors">
       <div class="toolbar">
-        <h1>Visits</h1>
+        <h1>Summary</h1>
         <a class="back" href="#home">Back</a>
       </div>
       <ul class="edit rounded">
         <div class="loading"></div>
-        <div id="visits"></div>
+        <div id="summary" class="graph"></div>
       </ul>
     </div>
     <div id="conversion_rate">
@@ -191,7 +192,7 @@
       </div>
       <ul class="edit rounded">
         <div class="loading"></div>
-        <div id="conversion_rate_graph"></div>
+        <div id="conversion_rate_graph" class="graph"></div>
       </ul>
     </div>
     <div id="settings">
@@ -228,7 +229,7 @@
       </div>
       <h2>No website set up</h2>
       <ul class="rounded">
-        <li class="arrow"><a href="#visitors">Visitors</a></li>
+        <li class="arrow"><a href="#visitors">Summary</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
         <li>
           <select id="period">
