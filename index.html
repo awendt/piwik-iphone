@@ -60,13 +60,17 @@
             return markings;
         }
 
+        var unix_milliseconds_from = function(piwik_date) {
+          return (new Date(piwik_date.replace(/-/g, '/'))).getTime();
+        }
+
         var get_visitors = function() {
           piwik.get('VisitsSummary.get', '#visits', function(json) {
             var visits = _.map(json, function(summary, date) {
-              return [(new Date(date)).getTime(), summary['nb_visits']];
+              return [unix_milliseconds_from(date), summary['nb_visits']];
             });
             var bounces = _.map(json, function(summary, date) {
-              return [(new Date(date)).getTime(), summary['bounce_count']];
+              return [unix_milliseconds_from(date), summary['bounce_count']];
             });
             $("#visits").css({width: '300px', height:'400px'});
             $.plot($("#visits"), [visits, bounces], {
@@ -88,7 +92,7 @@
         var get_conversion_rate = function() {
           piwik.get('Goals.getConversionRate', '#conversion_rate_graph', function(json) {
             var conversion_rates = _.map(json, function(rate, date) {
-              return [(new Date(date)).getTime(), rate];
+              return [unix_milliseconds_from(date), rate];
             });
             $("#conversion_rate_graph").css({width: '300px', height:'400px'});
             $.plot($("#conversion_rate_graph"), [conversion_rates], {
