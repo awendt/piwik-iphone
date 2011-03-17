@@ -67,6 +67,15 @@
           return piwik.convert_date(piwik_date).getTime();
         };
 
+        var timeformat_for_period = function() {
+          switch(localStorage.period) {
+            case "day": return "%d"; break;
+            case "week": return "%b"; break;
+            case "month": return "%b"; break;
+            case "year": return "%y"; break;
+          }
+        };
+
         var get_visitors = function() {
           piwik.get('VisitsSummary.get', '#visits', function(json) {
             var visits = _.map(json, function(summary, date) {
@@ -85,7 +94,7 @@
                 show: true
               },
               xaxis: {
-                mode: "time", timeformat: "%d"
+                mode: "time", timeformat: timeformat_for_period()
               }
             });
             $("#visitors .loading").hide();
@@ -107,7 +116,7 @@
                 show: true
               },
               xaxis: {
-                mode: "time", timeformat: "%d"
+                mode: "time", timeformat: timeformat_for_period()
               }
             });
             $("#conversion_rate .loading").hide();
