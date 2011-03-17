@@ -92,5 +92,27 @@ Screw.Unit(function() {
         });
       });
     });
+
+    describe("converting dates", function() {
+      it("should return a date with slashes so Safari does not choke", function() {
+        var date = piwik.convert_date("2011-03-04");
+        expect(date.toDateString()).to(be, "Fri Mar 04 2011");
+      })
+
+      it("should return a single parsable date for ranges", function() {
+        var date = piwik.convert_date("2011-03-03 to 2011-03-09");
+        expect(date.toDateString()).to(be, "Wed Mar 09 2011");
+      })
+
+      it("should return a single parsable date for month", function() {
+        var date = piwik.convert_date("2011-03");
+        expect(date.toDateString()).to(be, "Tue Mar 01 2011");
+      })
+
+      it("should return a single parsable date for year", function() {
+        var date = piwik.convert_date("2011");
+        expect(date.toDateString()).to(be, "Sat Jan 01 2011");
+      })
+    });
   });
 });

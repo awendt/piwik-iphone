@@ -64,8 +64,8 @@
         };
 
         var unix_milliseconds_from = function(piwik_date) {
-          return (new Date(piwik_date.replace(/-/g, '/'))).getTime();
-        }
+          return piwik.convert_date(piwik_date).getTime();
+        };
 
         var get_visitors = function() {
           piwik.get('VisitsSummary.get', '#visits', function(json) {
