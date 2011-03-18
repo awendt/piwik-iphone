@@ -42,6 +42,10 @@
           init();
         }
 
+        var percentFormatter = function(val, axis) {
+          return val.toFixed(axis.tickDecimals) + "&nbsp;%";
+        };
+
         // helper for returning the weekends in a period
         // Credit: examples/visitors.html
         var weekendAreas = function(axes) {
@@ -115,7 +119,8 @@
             var conversion_rates = _.map(json, function(rate, date) {
               return [unix_milliseconds_from(date), rate];
             });
-            $.plot($("#conversion_rate_graph"), [conversion_rates], default_flot_options);
+            $.plot($("#conversion_rate_graph"), [conversion_rates],
+                $.extend({}, default_flot_options, {yaxis: {tickFormatter: percentFormatter}}));
             $("#conversion_rate .loading").hide();
           });
         };
