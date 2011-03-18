@@ -42,6 +42,12 @@
           init();
         }
 
+        var capitalize = function(str) {
+          return (str + '').replace(/^([a-z])|\s+([a-z])/g, function ($1) {
+            return $1.toUpperCase();
+          });
+        };
+
         var percentFormatter = function(val, axis) {
           return val.toFixed(axis.tickDecimals) + "&nbsp;%";
         };
@@ -95,6 +101,7 @@
             position: 'sw'
           }
         };
+
         var get_visitors = function() {
           piwik.get('VisitsSummary.get', '#summary', function(json) {
             var visits = _.map(json, function(summary, date) {
@@ -122,6 +129,23 @@
             $.plot($("#conversion_rate_graph"), [conversion_rates],
                 $.extend({}, default_flot_options, {yaxis: {tickFormatter: percentFormatter}}));
             $("#conversion_rate .loading").hide();
+          });
+        };
+
+        var get_campaigns = function() {
+          piwik.get('Referers.getCampaigns', '#campaigns', function(json) {
+            var by_campaign = {};
+            _.each(json, function(campaigns, date) {
+              _.each(campaigns, function(campaign) {
+                var label = campaign['label'];
+                if (!by_campaign[label]) {
+                  by_campaign[label] = {label: capitalize(label), data: []};
+                }
+                by_campaign[label].data.push([unix_milliseconds_from(date), campaign['nb_visits']]);
+              });
+            });
+            $.plot($("#campaigns_graph"), _.values(by_campaign), default_flot_options);
+            $("#campaigns .loading").hide();
           });
         };
 
@@ -157,6 +181,11 @@
         $("#conversion_rate").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_conversion_rate();
+        });
+
+        $("#campaigns").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_campaigns();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -200,6 +229,16 @@
         <div id="conversion_rate_graph" class="graph"></div>
       </ul>
     </div>
+    <div id="campaigns">
+      <div class="toolbar">
+        <h1>Campaigns</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul class="edit rounded">
+        <div class="loading"></div>
+        <div id="campaigns_graph" class="graph"></div>
+      </ul>
+    </div>
     <div id="settings">
       <div class="toolbar">
         <h1>Settings</h1>
@@ -236,6 +275,7 @@
       <ul class="rounded">
         <li class="arrow"><a href="#visitors">Summary</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
+        <li class="arrow"><a href="#campaigns">Campaigns</a></li>
         <li>
           <select id="period">
             <option value="day">Daily</option>
