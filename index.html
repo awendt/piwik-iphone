@@ -86,20 +86,22 @@
           }
         };
 
-        var default_flot_options = {
-          grid: { markings: weekendAreas },
-          points: {
-            show: true
-          },
-          lines: {
-            show: true
-          },
-          xaxis: {
-            mode: "time", timeformat: timeformat_for_period()
-          },
-          legend: {
-            position: 'sw'
-          }
+        var default_flot_options = function() {
+          return {
+            grid: { markings: weekendAreas },
+            points: {
+              show: true
+            },
+            lines: {
+              show: true
+            },
+            xaxis: {
+              mode: "time", timeformat: timeformat_for_period()
+            },
+            legend: {
+              position: 'sw'
+            }
+          };
         };
 
         var get_visitors = function() {
@@ -116,7 +118,7 @@
             var d1 = {label: 'Total Visitors', color: 0, data: visits};
             var d2 = {label: 'Bounces', color: 2, data: bounces};
             var d3 = {label: 'Conversions', color: 3, data: conversions};
-            $.plot($("#summary"), [d1, d2, d3], default_flot_options);
+            $.plot($("#summary"), [d1, d2, d3], default_flot_options());
             $("#visitors .loading").hide();
           });
         };
@@ -127,7 +129,7 @@
               return [unix_milliseconds_from(date), rate];
             });
             $.plot($("#conversion_rate_graph"), [conversion_rates],
-                $.extend({}, default_flot_options, {yaxis: {tickFormatter: percentFormatter}}));
+                $.extend({}, default_flot_options(), {yaxis: {tickFormatter: percentFormatter}}));
             $("#conversion_rate .loading").hide();
           });
         };
@@ -144,7 +146,7 @@
                 by_campaign[label].data.push([unix_milliseconds_from(date), campaign['nb_visits']]);
               });
             });
-            $.plot($("#campaigns_graph"), _.values(by_campaign), default_flot_options);
+            $.plot($("#campaigns_graph"), _.values(by_campaign), default_flot_options());
             $("#campaigns .loading").hide();
           });
         };
