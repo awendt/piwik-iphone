@@ -85,10 +85,34 @@ Screw.Unit(function() {
           mock(jQuery).should_not_receive("getJSON");
           var do_something = mock_function();
           mock(piwik).must_receive('url_for').and_return('/already/accessed');
-          $("#some_element").data('showing', '/already/accessed')
+          $("#some_element").data('showing', '/already/accessed');
           piwik.get("Goals.getConversionRate", "#some_element", do_something);
 
           do_something.should_not_be_invoked();
+        });
+      });
+
+      describe("loader overlay", function() {
+        it("is shown before the AJAX call begins", function() {
+          expect($("#some_element .loading").css("display")).to(be, "none");
+          piwik.get("Goals.getConversionRate", "#some_element", mock_function());
+          expect($("#some_element .loading").css("display")).to_not(be, "none");
+        });
+
+        it("is hidden after the AJAX call returns", function() {
+          piwik.get("Goals.getConversionRate", "#some_element", mock_function());
+          expect($("#some_element .loading").css("display")).to_not(be, "none");
+          success_fn();
+          expect($("#some_element .loading").css("display")).to(be, "none");
+        });
+
+        it("is not toggled at all when data is already available", function() {
+          mock(piwik).must_receive('url_for').and_return('/already/accessed');
+          $("#some_element").data('showing', '/already/accessed');
+
+          expect($("#some_element .loading").css("display")).to(be, "none");
+          piwik.get("Goals.getConversionRate", "#some_element", mock_function());
+          expect($("#some_element .loading").css("display")).to(be, "none");
         });
       });
     });
