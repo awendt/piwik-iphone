@@ -43,11 +43,11 @@ var piwik = (function() {
       }
       var url = piwik.url_for({method: method});
       if ($(cache_selector).data('showing') === url) { return; }
+      $(cache_selector).find(".loading").show('fast');
       $.getJSON(url, function(json) {
         callback(json);
-        if ($(cache_selector).length === 1) {
-          $(cache_selector).data('showing', url);
-        }
+        $(cache_selector).data('showing', url);
+        $(cache_selector).find(".loading").hide();
       });
     }
   };
