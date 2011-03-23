@@ -148,6 +148,28 @@
           });
         };
 
+        var get_browsers = function() {
+          piwik.get('UserSettings.getBrowserType', '#browsers', function(json) {
+            var by_engine = {};
+            _.each(json, function(engines, date) {
+              var visits = _.map(engines, function(engine_info) {
+                return engine_info['nb_visits'];
+              })
+              var added_visits = _.reduce(visits, function(memo, num) { return memo + num; }, 0);
+              _.each(engines, function(engine) {
+                var label = engine['label'];
+                if (!by_engine[label]) {
+                  by_engine[label] = {label: label, data: []};
+                }
+                by_engine[label].data.push([unix_milliseconds_from(date),
+                    engine['nb_visits'] / added_visits * 100]);
+              });
+            });
+            $.plot($("#browsers_graph"), _.values(by_engine),
+                $.extend({}, default_flot_options(), {yaxis: {tickFormatter: percentFormatter}}));
+          });
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -185,6 +207,11 @@
         $("#campaigns").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_campaigns();
+        });
+
+        $("#browsers").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_browsers();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -238,6 +265,16 @@
         <div id="campaigns_graph" class="graph"></div>
       </ul>
     </div>
+    <div id="browsers">
+      <div class="toolbar">
+        <h1>Browsers</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul class="edit rounded">
+        <div class="loading"></div>
+        <div id="browsers_graph" class="graph"></div>
+      </ul>
+    </div>
     <div id="settings">
       <div class="toolbar">
         <h1>Settings</h1>
@@ -275,6 +312,7 @@
         <li class="arrow"><a href="#visitors">Summary</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
         <li class="arrow"><a href="#campaigns">Campaigns</a></li>
+        <li class="arrow"><a href="#browsers">Browsers</a></li>
         <li>
           <select id="period">
             <option value="day">Daily</option>
