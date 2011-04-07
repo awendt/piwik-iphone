@@ -173,6 +173,7 @@
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
+          $("#querySites").addClass("loading").removeClass("whiteButton").text("");
           $.getJSON(
             piwik.url_for({
               install: $("#install").val(),
@@ -189,7 +190,7 @@
                 $("#site").append('<option value="'+ site.idsite +'">'+ site.name +'</option>');
               });
               $(".question3").show();
-              $('#querySites').hide();
+              $("#querySites").removeClass("loading").addClass("whiteButton").text("Show sites").hide();
             }
           );
         });
