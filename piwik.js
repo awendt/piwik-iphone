@@ -36,12 +36,18 @@ var piwik = (function() {
       }
     },
 
-    get: function(method, cache_selector, callback) {
+    get: function(method_or_url_options, cache_selector, callback) {
+      var url_options;
+      if ($.isPlainObject(method_or_url_options)) {
+        url_options = method_or_url_options;
+      } else {
+        url_options = {method: method_or_url_options};
+      }
       if ($.isFunction(cache_selector) && !callback) {
         callback = cache_selector;
         cache_selector = null;
       }
-      var url = piwik.url_for({method: method});
+      var url = piwik.url_for(url_options);
       if ($(cache_selector).data('showing') === url) { return; }
       $(cache_selector).find(".loading").show('fast');
       $.getJSON(url, function(json) {

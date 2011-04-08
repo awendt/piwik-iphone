@@ -170,6 +170,18 @@
           });
         };
 
+        var get_pages = function() {
+          piwik.get({method:'Actions.getPageTitles', date:'last1'}, '#pages_list', function(json) {
+            $("#pages_list li").remove();
+            _.each(json, function(pages, date) {
+              _.each(_.first(pages, 10), function(page) {
+                $("#pages_list").append(
+                    '<li><a href="#">'+page['label']+'</a><small class="counter">'+page['nb_visits']+'</small></li>');
+              });
+            });
+          });
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -213,6 +225,11 @@
         $("#browsers").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_browsers();
+        });
+
+        $("#pages").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_pages();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -276,6 +293,15 @@
         <div id="browsers_graph" class="graph"></div>
       </ul>
     </div>
+    <div id="pages">
+      <div class="toolbar">
+        <h1>Popular Pages</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul id="pages_list" class="edit rounded">
+        <div class="loading"></div>
+      </ul>
+    </div>
     <div id="settings">
       <div class="toolbar">
         <h1>Settings</h1>
@@ -313,7 +339,8 @@
         <li class="arrow"><a href="#visitors">Summary</a></li>
         <li class="arrow"><a href="#conversion_rate">Conversion rate</a></li>
         <li class="arrow"><a href="#campaigns">Campaigns</a></li>
-        <li class="arrow"><a href="#browsers">Browsers</a></li>
+        <li class="arrow"><a href="#browsers">Browser shares</a></li>
+        <li class="arrow"><a href="#pages">Popular Pages</a></li>
         <li>
           <select id="period">
             <option value="day">Daily</option>

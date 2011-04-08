@@ -69,7 +69,11 @@ Screw.Unit(function() {
       });
 
       // Might want to call url_for with arbitrary params, see also $.isPlainObject()
-      it("allows for a hash as first param to pass to url_for")
+      it("allows for a hash as first param to pass to url_for", function() {
+        mock(piwik).must_receive("url_for").with_arguments(
+            {method: 'someMethod', other: 'param'})
+        piwik.get({method: 'someMethod', other: 'param'})
+      });
 
       describe("caching data", function() {
         it("stores the URL in 'data' of the element with the given selector", function() {
