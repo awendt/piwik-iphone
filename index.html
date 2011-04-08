@@ -182,6 +182,18 @@
           });
         };
 
+        var get_keywords = function() {
+          piwik.get({method:'Referers.getKeywords', date:'last1'}, '#keywords_list',function(json) {
+            $("#keywords_list li").remove();
+            _.each(json, function(keywords, date) {
+              _.each(_.first(keywords, 10), function(keyword) {
+                $("#keywords_list").append(
+                    '<li><a href="#">'+keyword['label']+'</a><small class="counter">'+keyword['nb_visits']+'</small></li>');
+              });
+            });
+          });
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -230,6 +242,11 @@
         $("#pages").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_pages();
+        });
+
+        $("#keywords").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_keywords();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -302,6 +319,15 @@
         <div class="loading"></div>
       </ul>
     </div>
+    <div id="keywords">
+      <div class="toolbar">
+        <h1>Search Terms</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul id="keywords_list" class="edit rounded">
+        <div class="loading"></div>
+      </ul>
+    </div>
     <div id="settings">
       <div class="toolbar">
         <h1>Settings</h1>
@@ -341,6 +367,7 @@
         <li class="arrow"><a href="#campaigns">Campaigns</a></li>
         <li class="arrow"><a href="#browsers">Browser shares</a></li>
         <li class="arrow"><a href="#pages">Popular Pages</a></li>
+        <li class="arrow"><a href="#keywords">Search Terms</a></li>
         <li>
           <select id="period">
             <option value="day">Daily</option>
