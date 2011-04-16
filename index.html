@@ -14,6 +14,10 @@
     <script type="text/javascript" src="piwik.js" ></script>
     <script type="text/javascript">
 
+      $('ul.edit li a').live('click', function(event) {
+        event.stopImmediatePropagation();
+      });
+
       var jQT = $.jQTouch({
         icon: 'jqtouch.png',
         slideSelector: 'body > * > ul li a',
