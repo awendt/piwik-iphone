@@ -14,6 +14,10 @@
     <script type="text/javascript" src="piwik.js" ></script>
     <script type="text/javascript">
 
+      $('ul.edit li a').live('click', function(event) {
+        event.stopImmediatePropagation();
+      });
+
       var jQT = $.jQTouch({
         icon: 'jqtouch.png',
         slideSelector: 'body > * > ul li a',
@@ -194,6 +198,20 @@
           });
         };
 
+        var get_referers = function() {
+          piwik.get({method:'Referers.getWebsites', date:'last1'}, '#referers_list',function(json) {
+            $("#referers_list li").remove();
+            _.each(json, function(referers, date) {
+              _.each(_.first(referers, 10), function(referer) {
+                if (referer['nb_visits'] > 0) {
+                  $("#referers_list").append(
+                      '<li><a href="#">'+referer['label']+'</a><small class="counter">'+referer['nb_visits']+'</small></li>');
+                }
+              });
+            });
+          });
+        };
+
         $('#querySites').click(function() {
           if ($("#install").val() === "") { return; }
 
@@ -247,6 +265,11 @@
         $("#keywords").bind('pageAnimationEnd', function(event, info) {
           if (info.direction == "out") { return; }
           get_keywords();
+        });
+
+        $("#referers").bind('pageAnimationEnd', function(event, info) {
+          if (info.direction == "out") { return; }
+          get_referers();
         });
 
         $("#dashboard").bind('pageAnimationEnd', function(event, info) {
@@ -328,6 +351,15 @@
         <div class="loading"></div>
       </ul>
     </div>
+    <div id="referers">
+      <div class="toolbar">
+        <h1>Referers</h1>
+        <a class="back" href="#home">Back</a>
+      </div>
+      <ul id="referers_list" class="edit rounded">
+        <div class="loading"></div>
+      </ul>
+    </div>
     <div id="settings">
       <div class="toolbar">
         <h1>Settings</h1>
@@ -368,6 +400,7 @@
         <li class="arrow"><a href="#browsers">Browser shares</a></li>
         <li class="arrow"><a href="#pages">Popular Pages</a></li>
         <li class="arrow"><a href="#keywords">Search Terms</a></li>
+        <li class="arrow"><a href="#referers">Referers</a></li>
         <li>
           <select id="period">
             <option value="day">Daily</option>
