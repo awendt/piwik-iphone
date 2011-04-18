@@ -90,8 +90,8 @@
           }
         };
 
-        var default_flot_options = function() {
-          return {
+        var flot_options = function(options) {
+          return $.extend({
             grid: { markings: weekendAreas },
             points: {
               show: true
@@ -105,7 +105,7 @@
             legend: {
               position: 'sw'
             }
-          };
+          }, options);
         };
 
         var get_visitors = function() {
@@ -122,7 +122,7 @@
             var d1 = {label: 'Total Visitors', color: 0, data: visits};
             var d2 = {label: 'Bounces', color: 2, data: bounces};
             var d3 = {label: 'Conversions', color: 3, data: conversions};
-            $.plot($("#summary"), [d1, d2, d3], default_flot_options());
+            $.plot($("#summary"), [d1, d2, d3], flot_options());
           });
         };
 
@@ -132,7 +132,7 @@
               return [unix_milliseconds_from(date), rate];
             });
             $.plot($("#conversion_rate_graph"), [conversion_rates],
-                $.extend({}, default_flot_options(), {yaxis: {tickFormatter: percentFormatter}}));
+                flot_options({yaxis: {tickFormatter: percentFormatter}}));
           });
         };
 
@@ -148,7 +148,7 @@
                 by_campaign[label].data.push([unix_milliseconds_from(date), campaign['nb_visits']]);
               });
             });
-            $.plot($("#campaigns_graph"), _.values(by_campaign), default_flot_options());
+            $.plot($("#campaigns_graph"), _.values(by_campaign), flot_options());
           });
         };
 
@@ -169,8 +169,10 @@
                     engine['nb_visits'] / added_visits * 100]);
               });
             });
-            $.plot($("#browsers_graph"), _.values(by_engine),
-                $.extend({}, default_flot_options(), {yaxis: {tickFormatter: percentFormatter}}));
+            $.plot($("#browsers_graph"), _.values(by_engine), flot_options({
+              yaxis: {tickFormatter: percentFormatter, max: 100},
+              legend: {position: 'nw'}
+            }));
           });
         };
 
