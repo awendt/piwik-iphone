@@ -108,110 +108,110 @@
           }, options);
         };
 
-        var get_visitors = function() {
-          piwik.get('VisitsSummary.get', '#visitors', function(json) {
-            var visits = _.map(json, function(summary, date) {
-              return [unix_milliseconds_from(date), summary['nb_visits']];
+        var render = {
+          dashboard: init,
+          visitors: function() {
+            piwik.get('VisitsSummary.get', '#visitors', function(json) {
+              var visits = _.map(json, function(summary, date) {
+                return [unix_milliseconds_from(date), summary['nb_visits']];
+              });
+              var bounces = _.map(json, function(summary, date) {
+                return [unix_milliseconds_from(date), summary['bounce_count']];
+              });
+              var conversions = _.map(json, function(summary, date) {
+                return [unix_milliseconds_from(date), summary['nb_visits_converted'] || 0];
+              });
+              var d1 = {label: 'Total Visitors', color: 0, data: visits};
+              var d2 = {label: 'Bounces', color: 2, data: bounces};
+              var d3 = {label: 'Conversions', color: 3, data: conversions};
+              $.plot($("#summary"), [d1, d2, d3], flot_options());
             });
-            var bounces = _.map(json, function(summary, date) {
-              return [unix_milliseconds_from(date), summary['bounce_count']];
+          },
+          conversion_rate: function() {
+            piwik.get('Goals.getConversionRate', '#conversion_rate', function(json) {
+              var conversion_rates = _.map(json, function(rate, date) {
+                return [unix_milliseconds_from(date), rate];
+              });
+              $.plot($("#conversion_rate_graph"), [conversion_rates],
+                  flot_options({yaxis: {tickFormatter: percentFormatter}}));
             });
-            var conversions = _.map(json, function(summary, date) {
-              return [unix_milliseconds_from(date), summary['nb_visits_converted'] || 0];
+          },
+          campaigns: function() {
+            piwik.get('Referers.getCampaigns', '#campaigns', function(json) {
+              var by_campaign = {};
+              _.each(json, function(campaigns, date) {
+                _.each(campaigns, function(campaign) {
+                  var label = campaign['label'];
+                  if (!by_campaign[label]) {
+                    by_campaign[label] = {label: capitalize(label), data: []};
+                  }
+                  by_campaign[label].data.push([unix_milliseconds_from(date), campaign['nb_visits']]);
+                });
+              });
+              $.plot($("#campaigns_graph"), _.values(by_campaign), flot_options());
             });
-            var d1 = {label: 'Total Visitors', color: 0, data: visits};
-            var d2 = {label: 'Bounces', color: 2, data: bounces};
-            var d3 = {label: 'Conversions', color: 3, data: conversions};
-            $.plot($("#summary"), [d1, d2, d3], flot_options());
-          });
-        };
-
-        var get_conversion_rate = function() {
-          piwik.get('Goals.getConversionRate', '#conversion_rate', function(json) {
-            var conversion_rates = _.map(json, function(rate, date) {
-              return [unix_milliseconds_from(date), rate];
+          },
+          browsers: function() {
+            piwik.get('UserSettings.getBrowserType', '#browsers', function(json) {
+              var by_engine = {};
+              _.each(json, function(engines, date) {
+                var visits = _.map(engines, function(engine_info) {
+                  return engine_info['nb_visits'];
+                })
+                var added_visits = _.reduce(visits, function(memo, num) { return memo + num; }, 0);
+                _.each(engines, function(engine) {
+                  var label = engine['label'];
+                  if (!by_engine[label]) {
+                    by_engine[label] = {label: label, data: []};
+                  }
+                  by_engine[label].data.push([unix_milliseconds_from(date),
+                      engine['nb_visits'] / added_visits * 100]);
+                });
+              });
+              $.plot($("#browsers_graph"), _.values(by_engine), flot_options({
+                yaxis: {tickFormatter: percentFormatter, max: 100},
+                legend: {position: 'nw'}
+              }));
             });
-            $.plot($("#conversion_rate_graph"), [conversion_rates],
-                flot_options({yaxis: {tickFormatter: percentFormatter}}));
-          });
-        };
-
-        var get_campaigns = function() {
-          piwik.get('Referers.getCampaigns', '#campaigns', function(json) {
-            var by_campaign = {};
-            _.each(json, function(campaigns, date) {
-              _.each(campaigns, function(campaign) {
-                var label = campaign['label'];
-                if (!by_campaign[label]) {
-                  by_campaign[label] = {label: capitalize(label), data: []};
-                }
-                by_campaign[label].data.push([unix_milliseconds_from(date), campaign['nb_visits']]);
+          },
+          pages: function() {
+            piwik.get({method:'Actions.getPageTitles', date:'last1'}, '#pages_list',
+                function(json) {
+              $("#pages_list li").remove();
+              _.each(json, function(pages, date) {
+                _.each(_.first(pages, 10), function(page) {
+                  $("#pages_list").append(
+                      '<li><a href="#">'+page['label']+'</a><small class="counter">'+page['nb_visits']+'</small></li>');
+                });
               });
             });
-            $.plot($("#campaigns_graph"), _.values(by_campaign), flot_options());
-          });
-        };
-
-        var get_browsers = function() {
-          piwik.get('UserSettings.getBrowserType', '#browsers', function(json) {
-            var by_engine = {};
-            _.each(json, function(engines, date) {
-              var visits = _.map(engines, function(engine_info) {
-                return engine_info['nb_visits'];
-              })
-              var added_visits = _.reduce(visits, function(memo, num) { return memo + num; }, 0);
-              _.each(engines, function(engine) {
-                var label = engine['label'];
-                if (!by_engine[label]) {
-                  by_engine[label] = {label: label, data: []};
-                }
-                by_engine[label].data.push([unix_milliseconds_from(date),
-                    engine['nb_visits'] / added_visits * 100]);
+          },
+          keywords: function() {
+            piwik.get({method:'Referers.getKeywords',date: 'last1'}, '#keywords_list',
+                function(json) {
+              $("#keywords_list li").remove();
+              _.each(json, function(keywords, date) {
+                _.each(_.first(keywords, 10), function(keyword) {
+                  $("#keywords_list").append(
+                      '<li><a href="#">'+keyword['label']+'</a><small class="counter">'+keyword['nb_visits']+'</small></li>');
+                });
               });
             });
-            $.plot($("#browsers_graph"), _.values(by_engine), flot_options({
-              yaxis: {tickFormatter: percentFormatter, max: 100},
-              legend: {position: 'nw'}
-            }));
-          });
-        };
-
-        var get_pages = function() {
-          piwik.get({method:'Actions.getPageTitles', date:'last1'}, '#pages_list', function(json) {
-            $("#pages_list li").remove();
-            _.each(json, function(pages, date) {
-              _.each(_.first(pages, 10), function(page) {
-                $("#pages_list").append(
-                    '<li><a href="#">'+page['label']+'</a><small class="counter">'+page['nb_visits']+'</small></li>');
+          },
+          referers: function() {
+            piwik.get({method:'Referers.getWebsites', date: 'last1'}, '#referers_list',
+                function(json) {
+              $("#referers_list li").remove();
+              _.each(json, function(referers, date) {
+                _.each(_.first(referers, 10), function(referer) {
+                  if (referer['nb_visits'] > 0) {
+                    $("#referers_list").append(
+                        '<li><a href="#">'+referer['label']+'</a><small class="counter">'+referer['nb_visits']+'</small></li>');
+                  }
+                });
               });
             });
-          });
-        };
-
-        var get_keywords = function() {
-          piwik.get({method:'Referers.getKeywords', date:'last1'}, '#keywords_list',function(json) {
-            $("#keywords_list li").remove();
-            _.each(json, function(keywords, date) {
-              _.each(_.first(keywords, 10), function(keyword) {
-                $("#keywords_list").append(
-                    '<li><a href="#">'+keyword['label']+'</a><small class="counter">'+keyword['nb_visits']+'</small></li>');
-              });
-            });
-          });
-        };
-
-        var get_referers = function() {
-          piwik.get({method:'Referers.getWebsites', date:'last1'}, '#referers_list',function(json) {
-            $("#referers_list li").remove();
-            _.each(json, function(referers, date) {
-              _.each(_.first(referers, 10), function(referer) {
-                if (referer['nb_visits'] > 0) {
-                  $("#referers_list").append(
-                      '<li><a href="#">'+referer['label']+'</a><small class="counter">'+referer['nb_visits']+'</small></li>');
-                }
-              });
-            });
-          });
+          }
         };
 
         $('#querySites').click(function() {
@@ -239,44 +239,12 @@
           );
         });
 
-        $("#visitors").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_visitors();
-        });
-
-        $("#conversion_rate").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_conversion_rate();
-        });
-
-        $("#campaigns").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_campaigns();
-        });
-
-        $("#browsers").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_browsers();
-        });
-
-        $("#pages").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_pages();
-        });
-
-        $("#keywords").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_keywords();
-        });
-
-        $("#referers").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          get_referers();
-        });
-
-        $("#dashboard").bind('pageAnimationEnd', function(event, info) {
-          if (info.direction == "out") { return; }
-          init();
+        $("body > div").not("#settings").each(function() {
+          $(this).bind('pageAnimationEnd', function(event, info) {
+            var action = $(this).attr("id");
+            if (info.direction == "out" || !render.hasOwnProperty(action)) { return; }
+            render[action]();
+          });
         });
 
         $("#save").click(function() {
