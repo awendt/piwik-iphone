@@ -51,7 +51,11 @@ var piwik = (function() {
       if ($(cache_selector).data('showing') === url) { return; }
       $(cache_selector).find(".loading").show('fast');
       $.getJSON(url, function(json) {
-        callback(json);
+        if (json && json["result"] === "error") {
+          alert("An error occured: " + json["message"]);
+        } else {
+          callback(json);
+        }
         $(cache_selector).data('showing', url);
         $(cache_selector).find(".loading").hide();
       });

@@ -75,6 +75,29 @@ Screw.Unit(function() {
         piwik.get({method: 'someMethod', other: 'param'})
       });
 
+      describe("handling errors", function() {
+        it("catches errors and displays the message", function() {
+          var do_something = mock_function();
+          piwik.get("Goals.getConversionRate", do_something);
+
+          do_something.should_not_be_invoked();
+          mock(window).must_receive("alert").with_arguments(
+              "An error occured: You're doing it wrong");
+          success_fn({result: "error", message: "You're doing it wrong"});
+        });
+
+        it("does not invoke the callback", function() {
+          var invokations = 0;
+          var do_something = function() {
+            invokations += 1;
+          };
+          piwik.get("Goals.getConversionRate", do_something);
+          mock(window).should_receive("alert");
+          success_fn({result: "error", message: ""});
+          expect(invokations).to(be, 0);
+        });
+      });
+
       describe("caching data", function() {
         it("stores the URL in 'data' of the element with the given selector", function() {
           mock(piwik).must_receive('url_for').and_return("/some/url");
