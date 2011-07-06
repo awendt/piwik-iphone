@@ -126,9 +126,9 @@
             });
           },
           conversion_rate: function() {
-            piwik.get('Goals.getConversionRate', '#conversion_rate', function(json) {
-              var conversion_rates = _.map(json, function(rate, date) {
-                return [unix_milliseconds_from(date), rate];
+            piwik.get('Goals.get', '#conversion_rate', function(json) {
+              var conversion_rates = _.map(json, function(goals, date) {
+                return [unix_milliseconds_from(date), goals["conversion_rate"] || 0];
               });
               $.plot($("#conversion_rate_graph"), [conversion_rates],
                   flot_options({yaxis: {tickFormatter: percentFormatter}}));
